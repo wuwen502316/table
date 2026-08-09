@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>增强自定义N*M表格管理器</title>
@@ -99,7 +97,7 @@
         <button class="btn-add" id="addTableBtn">新建表格(支持2*2 / 2 2)</button>
         <span>双击单元格原地编辑；填充支持[val]*3重复语法</span>
     </div>
-    <div id="container"></div>
+    <div id="container"><div class="table-wrap" data-index="0"><div class="table-top"><div class="table-title">title</div><button class="btn-fill">批量填充表格</button><button class="btn-del">删除表格</button></div><table><tr><td>2</td><td>2</td></tr><tr><td>是</td><td>是</td></tr></table></div><div class="table-wrap" data-index="1"><div class="table-top"><div class="table-title">title</div><button class="btn-fill">批量填充表格</button><button class="btn-del">删除表格</button></div><table><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table></div></div>
  <script>
         const STORAGE_KEY = "customTableList";
         let tableList = [];
@@ -316,22 +314,23 @@
 
         loadStorage();
         renderAll();
-     let triggerLock = false;
+         let triggerLock = false;
 
-document.addEventListener('keydown', (e) => {
-    if(e.altKey && e.key.toLowerCase() === 'c' && !triggerLock){
-        e.preventDefault();
-        triggerLock = true;
-        localStorage.customTableList = ""
-    }
-})
+        document.addEventListener('keydown', (e) => {
+            if(e.altKey && e.key.toLowerCase() === 'c' && !triggerLock){
+                e.preventDefault();
+                triggerLock = true;
+                localStorage.customTableList = "";
+                location.reload()
+                }
+            })
 
-document.addEventListener('keyup', (e)=>{
-    // 松开按键解锁
-    if(e.key.toLowerCase() === 'c'){
-        triggerLock = false;
-    }
-})
+            document.addEventListener('keyup', (e)=>{
+            // 松开按键解锁
+            if(e.key.toLowerCase() === 'c'){
+                triggerLock = false;
+            }
+        })
     </script>
-</body>
-</html>
+
+</body></html>
