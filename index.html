@@ -316,6 +316,22 @@
 
         loadStorage();
         renderAll();
+     let triggerLock = false;
+
+document.addEventListener('keydown', (e) => {
+    if(e.altKey && e.key.toLowerCase() === 'c' && !triggerLock){
+        e.preventDefault();
+        triggerLock = true;
+        localStorage.customTableList = ""
+    }
+})
+
+document.addEventListener('keyup', (e)=>{
+    // 松开按键解锁
+    if(e.key.toLowerCase() === 'c'){
+        triggerLock = false;
+    }
+})
     </script>
 </body>
 </html>
