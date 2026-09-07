@@ -1,161 +1,465 @@
-<html lang="zh-CN"><head>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>增强自定义N*M表格管理器</title>
     <style>
-        *{
-            margin:0;
-            padding:0;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft Yahei",sans-serif;
+            font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
         }
-        body{
-            padding:30px;
-            background-color: #f4f7fa;
+
+        body {
+            padding: 30px;
+            background: #f0f2f5;
+            min-height: 100vh;
         }
-        .header{
-            margin-bottom:24px;
-            display:flex;
-            gap:12px;
-            align-items:center;
+
+        .header {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+            padding: 16px 24px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .header .hint {
+            font-size: 14px;
+            color: #6b7280;
+            margin-left: auto;
+        }
+
+        button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-add {
+            background: #2563eb;
+            color: #fff;
+        }
+        .btn-add:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-fill {
+            background: #0ea5e9;
+            color: #fff;
+        }
+        .btn-fill:hover {
+            background: #0284c7;
+        }
+
+        .btn-del {
+            background: #dc2626;
+            color: #fff;
+        }
+        .btn-del:hover {
+            background: #b91c1c;
+        }
+
+        .btn-clear {
+            background: #6b7280;
+            color: #fff;
+        }
+        .btn-clear:hover {
+            background: #4b5563;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .table-wrap {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 20px 24px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            transition: box-shadow 0.2s;
+        }
+        .table-wrap:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .table-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
         }
-        button{
-            padding:8px 16px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-            font-size:15px;
+
+        .table-index {
+            font-size: 13px;
+            font-weight: 600;
+            color: #9ca3af;
+            background: #f3f4f6;
+            padding: 2px 12px;
+            border-radius: 20px;
+            user-select: none;
         }
-        .btn-add{
-            background:#2563eb;
-            color:#fff;
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            padding: 4px 12px;
+            border-radius: 6px;
+            min-width: 100px;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: 1px solid transparent;
         }
-        .btn-fill{
-            background:#0ea5e9;
-            color:#fff;
+        .table-title:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
         }
-        .table-wrap{
-            background:#fff;
-            padding:20px;
-            border-radius:10px;
-            box-shadow:0 2px 8px #00000015;
-            margin-bottom:20px;
-        }
-        .table-top{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:12px;
-            margin-bottom:12px;
+
+        .table-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
             flex-wrap: wrap;
         }
-        .table-title{    max-width: 15vw;
-            font-size:18px;
-            font-weight:bold;
-            padding:4px 8px;
-            border-radius:4px;
-            min-width:120px;overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;
-        }
-        .table-title:hover{
-            background:#efefef;
-        }
-        .btn-del{
-            background:#dc2626;
-            color:white;
-        }
-        table{    text-align: center; 
+
+        .table-wrap table {
+            width: 100%;
             border-collapse: collapse;
-            width:100%;
+            table-layout: fixed;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 0px solid #e5e7eb;
         }
-        td{    display: inline-block;
-            border:1px solid #ccc;
-            width:80px;
-            height:50px;
-            padding:0px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;    text-align: center;    line-height: 50px;
+
+        /* ----- 奇偶行背景色（推荐组合 #e8eaed / #ffffff）----- */
+        .table-wrap tbody tr:nth-child(odd) {
+            background-color: #e8eaed;
         }
-        td:hover{
-            background:#f8f8f8;
+        .table-wrap tbody tr:nth-child(even) {
+            background-color: #ffffff;
         }
-        td input{
-            width:100%;
-            height:100%;
-            border:none;
-            outline:none;
-            padding:4px;
-            font-size:14px;
+
+        /* 高亮行（右键添加）覆盖奇偶样式 */
+        .row-highlight td {
+            background-color: #ff4444 !important;
+            color: #fff;
+        }
+
+        .table-wrap td {
+            border: 1px solid #c7cedb;
+            padding: 0;
+            height: 48px;
+            text-align: center;
+            vertical-align: middle;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background-color: inherit;
+            transition: background 0.15s;
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .table-wrap td:hover {
+            background: #f0f4ff;
+        }
+
+        .table-wrap td input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            padding: 0 8px;
+            font-size: 14px;
+            text-align: center;
+            background: transparent;
+            color: #1f2937;
+        }
+
+        .table-wrap td input:focus {
+            background: #f0f7ff;
+            box-shadow: inset 0 0 0 2px #2563eb;
+        }
+
+        .empty-tip {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 0;
+            font-size: 15px;
+        }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: all 0.35s ease;
+            pointer-events: none;
+            z-index: 999;
+            max-width: 90vw;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ---------- 自定义模态框 ---------- */
+        #fillModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #fillModal .modal-box {
+            background: #ffffff;
+            padding: 24px 28px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 650px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        #fillModal .modal-box h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        #fillModal .modal-box .hint {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        #fillModal .modal-box .hint code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        #fillModal textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 16px;
+        }
+        #fillModal textarea:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        #fillModal .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        #fillModal .modal-actions button {
+            padding: 8px 24px;
+        }
+        #fillModal .modal-actions .btn-cancel {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+        #fillModal .modal-actions .btn-cancel:hover {
+            background: #d1d5db;
+        }
+        #fillModal .modal-actions .btn-confirm {
+            background: #2563eb;
+            color: #fff;
+        }
+        #fillModal .modal-actions .btn-confirm:hover {
+            background: #1d4ed8;
+        }
+
+        /* 响应式 */
+        @media (max-width: 640px) {
+            body {
+                padding: 16px;
+            }
+            .header {
+                padding: 12px 16px;
+            }
+            .table-wrap {
+                padding: 14px 16px 18px;
+            }
+            .table-top {
+                gap: 10px;
+            }
+            .table-title {
+                max-width: 140px;
+                font-size: 16px;
+                min-width: 70px;
+            }
+            .table-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            button {
+                font-size: 13px;
+                padding: 6px 14px;
+            }
+            .table-wrap td {
+                height: 40px;
+                font-size: 13px;
+            }
+            #fillModal .modal-box {
+                padding: 16px;
+                width: 95%;
+            }
         }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <button class="btn-add" id="addTableBtn">新建表格(支持n*m / n m / 行 列)</button>
-        <span>双击单元格原地编辑；填充支持[val]*3重复语法</span>
+        <button class="btn-add" id="addTableBtn">➕ 新建表格</button>
+        <span class="hint">📐 支持 n*m 或 n m &nbsp;·&nbsp; 双击标题/单元格编辑 &nbsp;·&nbsp; 右键高亮行（自动保存） &nbsp;·&nbsp; 填充支持表格/重复语法</span>
+        <button class="btn-clear" id="clearAllBtn">🗑️ 清空所有</button>
     </div>
-    <div id="container"><div class="table-wrap" data-index="0"><div class="table-top"><div class="table-title">title</div><button class="btn-fill">批量填充表格</button><button class="btn-del">删除表格</button></div><table><tr><td>2</td><td>2</td></tr><tr><td>是</td><td>是</td></tr></table></div><div class="table-wrap" data-index="1"><div class="table-top"><div class="table-title">title</div><button class="btn-fill">批量填充表格</button><button class="btn-del">删除表格</button></div><table><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table></div></div>
- <script>
+
+    <div id="container"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ====== 自定义模态框（批量填充） ====== -->
+    <div id="fillModal">
+        <div class="modal-box">
+            <h3>📥 批量填充数据</h3>
+            <div class="hint">
+                <p>支持三种输入格式（任选其一）：</p>
+                <ul style="margin-left: 18px; list-style: disc;">
+                    <li><strong>表格格式</strong>（推荐）：用 <code>|</code> 分隔单元格，每行一个记录，例如：<br>
+                        <code>| a | b | c | d |</code><br>
+                        <code>| 1 | 2 | 3 | 4 |</code><br>
+                        <code>| 一 | 二 | 三 | 四 |</code>
+                    </li>
+                    <li><strong>空格分隔</strong>：仅限纯数字，支持 <code>[数字]*N</code> 重复，例如 <code>23 [45]*3 67</code></li>
+                    <li><strong>反斜杠分隔</strong>：支持任意文本，支持 <code>["文本"]*N</code> 重复，例如 <code>苹果\香蕉\["橙子"]*2</code></li>
+                </ul>
+                <p style="margin-top: 6px; color: #ef4444;">数据总量将自动适配表格大小（不足补空，超出截断）。</p>
+            </div>
+            <textarea id="fillTextarea" placeholder="在此输入数据…"></textarea>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="fillCancelBtn">取消</button>
+                <button class="btn-confirm" id="fillConfirmBtn">确定填充</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================== 常量 & 状态 ==============================
         const STORAGE_KEY = "customTableList";
         let tableList = [];
+        let currentFillTableIndex = -1;
 
-        function loadStorage(){
+        // ============================== 存储 ==============================
+        function loadStorage() {
             const data = localStorage.getItem(STORAGE_KEY);
-            if(data) tableList = JSON.parse(data);
+            if (data) {
+                try {
+                    tableList = JSON.parse(data);
+                } catch (_) {
+                    tableList = [];
+                }
+            }
+            // 数据迁移：为旧表格补上 rowHighlights 字段
+            tableList.forEach(item => {
+                if (!item.rowHighlights) item.rowHighlights = [];
+            });
         }
 
-        function saveStorage(){
+        function saveStorage() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(tableList));
         }
 
-        function createEmptyData(n, m){
-            let arr = [];
-            for(let i = 0; i < n; i++){
-                let row = [];
-                for(let j = 0; j < m; j++) row.push("");
-                arr.push(row);
-            }
-            return arr;
+        // ============================== 工具函数 ==============================
+        function createEmptyData(n, m) {
+            return Array.from({ length: n }, () => Array(m).fill(""));
         }
 
         /**
-         * 展开重复标记
-         * 支持 [12]*N 数字模式、["字符串"]*N文本模式，N必须为数字
+         * 展开重复标记（支持 [12]*3 或 ["文本"]*5）
          */
-        function expandRepeatTokens(tokens, isSpaceMode){
-            let res = [];
-            // 正则匹配 [内容]*次数
+        function expandRepeatTokens(tokens, isSpaceMode) {
+            const res = [];
             const reg = /^\[(.*)\]\*(\d+)$/;
-            for(let str of tokens){
+
+            for (let str of tokens) {
                 const match = str.match(reg);
-                if(match){
+                if (match) {
                     let inner = match[1];
-                    let repeatNum = Number(match[2]);
-                    if(isNaN(repeatNum) || repeatNum <= 0){
-                        alert(`重复次数「${match[2]}」必须是大于0的数字`);
+                    const repeatNum = Number(match[2]);
+
+                    if (isNaN(repeatNum) || repeatNum <= 0) {
+                        showToast(`⚠️ 重复次数「${match[2]}」必须为大于0的数字`);
                         return null;
                     }
-                    // 判断是否带双引号包裹字符串
-                    if(/^".*"$/.test(inner)){
-                        inner = inner.slice(1,-1);
-                    }else{
-                        // 不带引号则内部必须为纯数字
-                        if(!/^\d+$/.test(inner)){
-                            alert(`不带引号的重复项 [${inner}]*${repeatNum}，括号内只允许纯数字；文本请使用 ["内容"]*N`);
+
+                    if (/^".*"$/.test(inner)) {
+                        inner = inner.slice(1, -1);
+                    } else {
+                        if (!/^\d+$/.test(inner)) {
+                            showToast(`⚠️ 不带引号的重复项 [${inner}]*${repeatNum}，括号内只允许纯数字；文本请使用 ["内容"]*N`);
                             return null;
                         }
                     }
-                    for(let i = 0;i < repeatNum;i++){
+
+                    for (let i = 0; i < repeatNum; i++) {
                         res.push(inner);
                     }
-                }else{
-                    //普通元素
-                    if(isSpaceMode){
-                        if(!/^\d+$/.test(str)){
-                            alert("空格分隔模式普通单元格只能填写纯数字；文本请改用反斜杠 \\ 分隔");
+                } else {
+                    if (isSpaceMode) {
+                        if (!/^\d+$/.test(str)) {
+                            showToast('⚠️ 空格分隔模式下普通单元格只能填写纯数字；文本请改用反斜杠 \\ 分隔');
                             return null;
                         }
                     }
@@ -165,172 +469,403 @@
             return res;
         }
 
-        function parseFillData(inputStr, total){
-            let list;
-            let isSpaceMode = !inputStr.includes("\\");
-            if(inputStr.includes("\\")){
-                list = inputStr.split("\\").map(item=>item.trim()).filter(s=>s);
-            }else{
-                list = inputStr.trim().split(/\s+/).filter(s=>s);
+        /**
+         * 尝试解析表格格式（以 | 分隔的多行）
+         * 返回展平的一维数组，若解析失败返回 null
+         */
+        function parseTableFormat(inputStr) {
+            const lines = inputStr.split('\n').map(s => s.trim()).filter(s => s);
+            if (lines.length === 0) return null;
+
+            const allHavePipe = lines.every(line => line.includes('|'));
+            if (!allHavePipe) return null;
+
+            const dataRows = [];
+            for (let line of lines) {
+                const cells = line.split('|').map(s => s.trim());
+                let filtered = cells;
+                if (filtered.length > 0 && filtered[0] === '') filtered = filtered.slice(1);
+                if (filtered.length > 0 && filtered[filtered.length - 1] === '') filtered = filtered.slice(0, -1);
+                if (filtered.length === 0) filtered = [''];
+                dataRows.push(filtered);
             }
-            list = expandRepeatTokens(list,isSpaceMode);
-            if(list === null) return null;
-            return list;
+            if (dataRows.length === 0) return null;
+
+            const flat = [];
+            for (let row of dataRows) {
+                for (let cell of row) {
+                    flat.push(cell);
+                }
+            }
+            return flat;
         }
 
-        function renderAll(){
-            const box = document.getElementById("container");
-            box.innerHTML = "";
+        /**
+         * 主解析函数：先尝试表格格式，否则走空格/反斜杠逻辑
+         */
+        function parseFillData(inputStr) {
+            const tableResult = parseTableFormat(inputStr);
+            if (tableResult) {
+                return tableResult;
+            }
 
-            tableList.forEach((tableItem, index)=>{
-                const wrap = document.createElement("div");
-                wrap.className = "table-wrap";
-                wrap.dataset.index = index;
-                const cellCount = tableItem.rows * tableItem.cols;
+            const hasBackslash = inputStr.includes('\\');
+            let list;
+            if (hasBackslash) {
+                list = inputStr.split('\\').map(s => s.trim()).filter(s => s);
+            } else {
+                list = inputStr.trim().split(/\s+/).filter(s => s);
+            }
+            if (list.length === 0) {
+                showToast('⚠️ 未检测到有效数据');
+                return null;
+            }
+            return expandRepeatTokens(list, !hasBackslash);
+        }
 
-                const topBar = document.createElement("div");
-                topBar.className = "table-top";
+        // ============================== Toast ==============================
+        let toastTimer = null;
 
-                const titleDom = document.createElement("div");
-                titleDom.className = "table-title";
-                titleDom.innerText = tableItem.title;
-                titleDom.ondblclick = function(){
-                    const newName = prompt("修改表格标题", tableItem.title);
-                    if(newName !== null){
-                        tableItem.title = newName;
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.classList.remove('show');
+            }, 3000);
+        }
+
+        // ============================== 渲染 ==============================
+        function renderAll() {
+            const box = document.getElementById('container');
+            box.innerHTML = '';
+
+            if (tableList.length === 0) {
+                box.innerHTML = '<div class="empty-tip">📭 暂无表格，点击「新建表格」开始</div>';
+                return;
+            }
+
+            tableList.forEach((tableItem, index) => {
+                const wrap = document.createElement('div');
+                wrap.className = 'table-wrap';
+
+                // ---- top bar ----
+                const topBar = document.createElement('div');
+                topBar.className = 'table-top';
+
+                const idxBadge = document.createElement('span');
+                idxBadge.className = 'table-index';
+                idxBadge.textContent = `#${index + 1}`;
+
+                const titleDom = document.createElement('div');
+                titleDom.className = 'table-title';
+                titleDom.textContent = tableItem.title || '无标题';
+                titleDom.title = '双击修改标题';
+                titleDom.addEventListener('dblclick', function() {
+                    const newName = prompt('修改表格标题', tableItem.title);
+                    if (newName !== null && newName.trim() !== '') {
+                        tableItem.title = newName.trim();
+                        saveStorage();
+                        renderAll();
+                    } else if (newName !== null && newName.trim() === '') {
+                        tableItem.title = '无标题';
                         saveStorage();
                         renderAll();
                     }
-                }
+                });
 
-                const fillBtn = document.createElement("button");
-                fillBtn.className = "btn-fill";
-                fillBtn.innerText = "批量填充表格";
-                fillBtn.onclick = function(){
-                    const inputText = prompt(`格式示例 [23]*3 或者 ["我的娃"]*5，共需${cellCount}个单元格`, "");
-                    if(inputText===null || inputText.trim()==="") return;
-                    let res = parseFillData(inputText,cellCount);
-                    if(!res) return;
+                const actions = document.createElement('div');
+                actions.className = 'table-actions';
 
-                    if(res.length > cellCount){
-                        alert(`展开后一共有${res.length}条数据，大于格子总数${cellCount}；超出内容已经设置为本表格标题`);
-                        tableItem.title = res.slice(cellCount).join(" ");
-                        res = res.slice(0,cellCount);
-                    }else if(res.length < cellCount){
-                        const last = res[res.length - 1];
-                        while(res.length < cellCount){
-                            res.push(last);
-                        }
-                    }
-                    let ptr = 0;
-                    for(let i=0;i<tableItem.rows;i++){
-                        for(let j=0;j<tableItem.cols;j++){
-                            tableItem.data[i][j] = res[ptr++];
-                        }
-                    }
-                    saveStorage();
-                    renderAll();
-                }
+                const fillBtn = document.createElement('button');
+                fillBtn.className = 'btn-fill';
+                fillBtn.textContent = '📥 批量填充';
+                fillBtn.addEventListener('click', function() {
+                    currentFillTableIndex = index;
+                    const modal = document.getElementById('fillModal');
+                    const textarea = document.getElementById('fillTextarea');
+                    textarea.value = '';
+                    modal.style.display = 'flex';
+                    textarea.focus();
+                });
 
-                const delBtn = document.createElement("button");
-                delBtn.className = "btn-del";
-                delBtn.innerText = "删除表格";
-                delBtn.onclick = function(){
-                    if(confirm("确定要删除该表格吗？删除之后数据不可恢复！")){
-                        tableList.splice(index,1);
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-del';
+                delBtn.textContent = '🗑️ 删除';
+                delBtn.addEventListener('click', function() {
+                    if (confirm(`确定要删除「${tableItem.title || '无标题'}」吗？数据不可恢复！`)) {
+                        tableList.splice(index, 1);
                         saveStorage();
                         renderAll();
+                        showToast('🗑️ 已删除表格');
                     }
-                }
+                });
 
+                actions.appendChild(fillBtn);
+                actions.appendChild(delBtn);
+
+                topBar.appendChild(idxBadge);
                 topBar.appendChild(titleDom);
-                topBar.appendChild(fillBtn);
-                topBar.appendChild(delBtn);
+                topBar.appendChild(actions);
                 wrap.appendChild(topBar);
 
-                const t = document.createElement("table");
-                for(let i = 0; i < tableItem.rows; i++){
-                    const tr = document.createElement("tr");
-                    for(let j = 0; j < tableItem.cols; j++){
-                        const td = document.createElement("td");
-                        td.innerText = tableItem.data[i][j];
-                        td.ondblclick = function(){
-                            const oldVal = tableItem.data[i][j];
-                            td.innerHTML = "";
-                            const input = document.createElement("input");
+                // ---- table ----
+                const table = document.createElement('table');
+                const tbody = document.createElement('tbody');
+                table.appendChild(tbody);
+
+                for (let i = 0; i < tableItem.rows; i++) {
+                    const tr = document.createElement('tr');
+                    // 恢复高亮状态
+                    if (tableItem.rowHighlights && tableItem.rowHighlights.includes(i)) {
+                        tr.classList.add('row-highlight');
+                    }
+
+                    for (let j = 0; j < tableItem.cols; j++) {
+                        const td = document.createElement('td');
+                        td.textContent = tableItem.data[i][j] || '';
+
+                        // 双击编辑
+                        td.addEventListener('dblclick', function() {
+                            const oldVal = tableItem.data[i][j] || '';
+                            td.innerHTML = '';
+                            const input = document.createElement('input');
                             input.value = oldVal;
                             td.appendChild(input);
                             input.focus();
+                            input.select();
 
-                            const finishEdit = ()=>{
-                                tableItem.data[i][j] = input.value;
+                            const finishEdit = () => {
+                                const newVal = input.value;
+                                tableItem.data[i][j] = newVal;
                                 saveStorage();
-                                td.innerText = tableItem.data[i][j];
+                                td.textContent = newVal || '';
                             };
-                            input.addEventListener("blur",finishEdit);
-                            input.addEventListener("keydown",(e)=>{
-                                if(e.key === "Enter") finishEdit();
-                            })
-                        }
+
+                            input.addEventListener('blur', finishEdit);
+                            input.addEventListener('keydown', (e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    finishEdit();
+                                }
+                                if (e.key === 'Escape') {
+                                    input.value = oldVal;
+                                    td.textContent = oldVal || '';
+                                }
+                            });
+                        });
+
+                        // ----- 右键高亮当前行（并保存状态） -----
+                        td.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            const tr = this.closest('tr');
+                            if (!tr) return;
+
+                            // 获取行索引
+                            const tbody = tr.parentNode;
+                            const rows = Array.from(tbody.children);
+                            const rowIndex = rows.indexOf(tr);
+
+                            // 切换高亮类
+                            tr.classList.toggle('row-highlight');
+
+                            // 更新 tableItem.rowHighlights
+                            const isHighlighted = tr.classList.contains('row-highlight');
+                            const highlights = tableItem.rowHighlights;
+                            if (isHighlighted) {
+                                if (!highlights.includes(rowIndex)) {
+                                    highlights.push(rowIndex);
+                                }
+                            } else {
+                                const idx = highlights.indexOf(rowIndex);
+                                if (idx > -1) highlights.splice(idx, 1);
+                            }
+
+                            // 保存到 localStorage
+                            saveStorage();
+                        });
+
                         tr.appendChild(td);
                     }
-                    t.appendChild(tr);
+                    tbody.appendChild(tr);
                 }
-                wrap.appendChild(t);
+                wrap.appendChild(table);
                 box.appendChild(wrap);
-            })
+            });
         }
 
-        document.getElementById("addTableBtn").onclick = function(){
-            let inputStr = prompt("请输入行列，格式支持：n*m 或者 n m");
-            if(!inputStr) return;
-            let parts;
-            if(inputStr.includes("*")){
-                parts = inputStr.trim().split("*");
-            }else{
-                parts = inputStr.trim().split(/\s+/).filter(s=>s);
-            }
-            if(parts.length!==2){
-                alert("输入格式错误！示例：n*m  /  n m");
+        // ============================== 新建表格 ==============================
+        function createNewTable() {
+            const inputStr = prompt('请输入行列，格式：n*m 或 n m（例：3*4 或 3 4）', '3*4');
+            if (inputStr === null) return;
+
+            const trimmed = inputStr.trim();
+            if (trimmed === '') {
+                showToast('⚠️ 请输入行列数');
                 return;
             }
-            let n = Number(parts[0]);
-            let m = Number(parts[1]);
-            if(isNaN(n) || isNaN(m) || n<=0 || m<=0 || n>100 || m>20){
-                alert("行列数值必须大于0、n和m最大不能分别不能超过20，100");
+
+            let parts;
+            if (trimmed.includes('*')) {
+                parts = trimmed.split('*').map(s => s.trim());
+            } else {
+                parts = trimmed.split(/\s+/).filter(s => s);
+            }
+
+            if (parts.length !== 2) {
+                showToast('⚠️ 格式错误！请使用 n*m 或 n m');
+                return;
+            }
+
+            const n = Number(parts[0]);
+            const m = Number(parts[1]);
+            if (isNaN(n) || isNaN(m) || n <= 0 || m <= 0 || !Number.isInteger(n) || !Number.isInteger(m)) {
+                showToast('⚠️ 行列必须为正整数');
+                return;
+            }
+            if (n > 100 || m > 20) {
+                showToast('⚠️ 行数不能超过100，列数不能超过20');
                 return;
             }
 
             const newTable = {
-                title:"title",
-                rows:n,
-                cols:m,
-                data: createEmptyData(n,m)
-            }
+                title: `表格 ${tableList.length + 1}`,
+                rows: n,
+                cols: m,
+                data: createEmptyData(n, m),
+                rowHighlights: []   // 新增：存储高亮行索引
+            };
             tableList.push(newTable);
             saveStorage();
             renderAll();
+            showToast(`✅ 已创建 ${n}×${m} 表格`);
         }
 
-        loadStorage();
-        renderAll();
-         let triggerLock = false;
+        // ============================== 清空所有 ==============================
+        function clearAllData() {
+            if (tableList.length === 0) {
+                showToast('📭 当前没有表格');
+                return;
+            }
+            if (confirm('⚠️ 确定要清空所有表格数据吗？此操作不可恢复！')) {
+                tableList = [];
+                saveStorage();
+                renderAll();
+                showToast('🗑️ 已清空所有表格');
+            }
+        }
+
+        // ============================== 模态框事件 ==============================
+        document.getElementById('fillCancelBtn').addEventListener('click', function() {
+            document.getElementById('fillModal').style.display = 'none';
+            currentFillTableIndex = -1;
+        });
+
+        document.getElementById('fillConfirmBtn').addEventListener('click', function() {
+            const textarea = document.getElementById('fillTextarea');
+            const inputText = textarea.value;
+            if (inputText.trim() === '') {
+                showToast('⚠️ 未输入任何数据');
+                return;
+            }
+
+            const index = currentFillTableIndex;
+            if (index === -1) {
+                showToast('⚠️ 未指定表格');
+                return;
+            }
+            const tableItem = tableList[index];
+            const cellCount = tableItem.rows * tableItem.cols;
+
+            const result = parseFillData(inputText);
+            if (!result) return;
+
+            let dataArr = result;
+            if (dataArr.length > cellCount) {
+                showToast(`📌 数据共 ${dataArr.length} 条，超出 ${cellCount} 个单元格，已截断`);
+                dataArr = dataArr.slice(0, cellCount);
+            } else if (dataArr.length < cellCount) {
+                showToast(`📌 数据共 ${dataArr.length} 条，不足 ${cellCount} 个单元格，剩余用空字符串填充`);
+                while (dataArr.length < cellCount) {
+                    dataArr.push('');
+                }
+            } else {
+                showToast(`✅ 成功填充 ${cellCount} 个单元格`);
+            }
+
+            let ptr = 0;
+            for (let i = 0; i < tableItem.rows; i++) {
+                for (let j = 0; j < tableItem.cols; j++) {
+                    tableItem.data[i][j] = dataArr[ptr++] || '';
+                }
+            }
+            saveStorage();
+            renderAll();
+            document.getElementById('fillModal').style.display = 'none';
+            currentFillTableIndex = -1;
+        });
+
+        // 点击模态框背景关闭
+        document.getElementById('fillModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                currentFillTableIndex = -1;
+            }
+        });
+
+        // ============================== 快捷键 ==============================
+        let altLock = false;
 
         document.addEventListener('keydown', (e) => {
-            if(e.altKey && e.key.toLowerCase() === 'c' && !triggerLock){
+            if (e.altKey && e.key.toLowerCase() === 'c' && !altLock) {
                 e.preventDefault();
-                triggerLock = true;
-                localStorage.customTableList = "";
-                location.reload()
-                }
-            })
-
-            document.addEventListener('keyup', (e)=>{
-            // 松开按键解锁
-            if(e.key.toLowerCase() === 'c'){
-                triggerLock = false;
+                altLock = true;
+                clearAllData();
             }
-        })
+            if (e.altKey && e.key.toLowerCase() === 'n' && !altLock) {
+                e.preventDefault();
+                altLock = true;
+                createNewTable();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key.toLowerCase() === 'c' || e.key.toLowerCase() === 'n') {
+                altLock = false;
+            }
+        });
+
+        // ============================== 事件绑定 ==============================
+        document.getElementById('addTableBtn').addEventListener('click', createNewTable);
+        document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
+
+        // ============================== 初始化 ==============================
+        loadStorage();
+
+        if (tableList.length === 0) {
+            tableList = [{
+                title: '示例表格 A',
+                rows: 2,
+                cols: 2,
+                data: [
+                    ['2', '2'],
+                    ['是', '是']
+                ],
+                rowHighlights: []
+            }, {
+                title: '示例表格 B',
+                rows: 3,
+                cols: 3,
+                data: createEmptyData(3, 3),
+                rowHighlights: []
+            }];
+            saveStorage();
+        }
+
+        renderAll();
+        showToast('💡 Alt+C 清空所有 · Alt+N 新建表格 · 右键高亮行（自动保存）');
     </script>
 
-</body></html>
+</body>
+</html>
