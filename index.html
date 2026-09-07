@@ -94,7 +94,7 @@
 </head>
 <body>
     <div class="header">
-        <button class="btn-add" id="addTableBtn">新建表格(支持n*m / n m)</button>
+        <button class="btn-add" id="addTableBtn">新建表格(支持n*m / n m / 行 列)</button>
         <span>双击单元格原地编辑；填充支持[val]*3重复语法</span>
     </div>
     <div id="container"><div class="table-wrap" data-index="0"><div class="table-top"><div class="table-title">title</div><button class="btn-fill">批量填充表格</button><button class="btn-del">删除表格</button></div><table><tr><td>2</td><td>2</td></tr><tr><td>是</td><td>是</td></tr></table></div><div class="table-wrap" data-index="1"><div class="table-top"><div class="table-title">title</div><button class="btn-fill">批量填充表格</button><button class="btn-del">删除表格</button></div><table><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></table></div></div>
@@ -296,7 +296,7 @@
             }
             let n = Number(parts[0]);
             let m = Number(parts[1]);
-            if(isNaN(n) || isNaN(m) || n<=0 || m<=0 || n>20 || m>100){
+            if(isNaN(n) || isNaN(m) || n<=0 || m<=0 || n>100 || m>20){
                 alert("行列数值必须大于0、n和m最大不能分别不能超过20，100");
                 return;
             }
